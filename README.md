@@ -27,7 +27,7 @@ Veil keeps the *structure* and removes the *secrets*. The same value always maps
 ### Before
 
 ```text
-2026-11-16 03:12:44 ERROR deploy failed for kadehood.404@sigil-framework.space from 203.0.113.42 (mac 00:1A:2B:3C:4D:5E)
+2026-11-16 03:12:44 ERROR deploy failed for kadehood.404@example.com from 203.0.113.42 (mac 00:1A:2B:3C:4D:5E)
 Authorization: Bearer abcDEF1234567890abcDEF1234567890
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 db_password = "hunter2hunter2"
@@ -85,7 +85,13 @@ Known gaps:
 
 ## Run it
 
-No build step, no install.
+### Use it online
+
+Open **https://veil.sigil-framework.space**. Nothing to install, and your text never leaves the page.
+
+### Run it locally
+
+No build step, no install. Handy if you want to work offline or audit exactly what you're running.
 
 ```bash
 git clone https://github.com/<you>/veil.git
