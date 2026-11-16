@@ -27,13 +27,13 @@ Veil keeps the *structure* and removes the *secrets*. The same value always maps
 ### Before
 
 ```text
-2026-11-16 03:12:44 ERROR deploy failed for jon@example.com from 203.0.113.42 (mac 00:1A:2B:3C:4D:5E)
+2026-11-16 03:12:44 ERROR deploy failed for kadehood.404@sigil-framework.space from 203.0.113.42 (mac 00:1A:2B:3C:4D:5E)
 Authorization: Bearer abcDEF1234567890abcDEF1234567890
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 db_password = "hunter2hunter2"
 connecting to postgres://admin:s3cr3tpw@db.internal:5432/app
 GITHUB_TOKEN: ghp_abcdefghijklmnopqrstuvwxyz0123456789
-config at /home/jon/projects/secret-app/config.yml
+config at /home/kadehood/projects/secret-app/config.yml
 ```
 
 ### After
