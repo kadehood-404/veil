@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Veil — Redact Secrets &amp; PII from Logs Before Pasting into ChatGPT or Claude</title>
+<meta name="description" content="Free reversible redactor: swap API keys, tokens, emails, IPs and passwords for placeholders before sharing logs with AI or forums, then restore them in the reply. 100% client-side.">
+<link rel="canonical" href="https://veil.sigil-framework.space/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#07060b">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Veil">
+<meta property="og:title" content="Veil — reversible secret redactor for logs, configs and code">
+<meta property="og:description" content="Redact API keys, tokens, emails and IPs before pasting into AI. Paste the reply back and restore the real values. Runs entirely in your browser.">
+<meta property="og:url" content="https://veil.sigil-framework.space/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Veil — reversible secret redactor">
+<meta name="twitter:description" content="Stop pasting secrets into chatbots. Redact, share, restore. 100% client-side.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2307060b'/%3E%3Cpath d='M8 32c6-12 14-18 24-18s18 6 24 18c-6 12-14 18-24 18S14 44 8 32z' fill='none' stroke='%239d6bff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%2339ff9c'/%3E%3C/svg%3E">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Veil","url":"https://veil.sigil-framework.space/","applicationCategory":"DeveloperApplication","operatingSystem":"Any (web browser)","description":"Reversible client-side redactor that replaces secrets, credentials, emails and IP addresses with placeholders so logs can be shared safely, then restores them.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<style>
+:root{--bg:#07060b;--panel:#0f0d17;--line:#2a2340;--fg:#d8d4ea;--dim:#7d7698;--accent:#9d6bff;--ok:#39ff9c;--err:#ff4d6d;--warn:#ffd24d}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#1b1233 0,transparent 60%),var(--bg);color:var(--fg);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-height:100vh}
+header{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+h1{margin:0;font-size:20px;letter-spacing:.15em;color:var(--accent)}
+h1 span{color:var(--ok)}
+header p{margin:0;color:var(--dim)}
+.wrap{max-width:1500px;margin:auto;padding:14px;display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+h2{margin:0;font-size:12px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2 small{text-transform:none;letter-spacing:0;color:var(--ok);font-size:12px}
+textarea{width:100%;min-height:300px;flex:1;background:#0a0812;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;resize:vertical;outline:none}
+textarea.short{min-height:90px;flex:none}
+textarea:focus{border-color:var(--accent)}
+button,label.btn{background:#171229;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer;display:inline-block}
+button:hover,label.btn:hover{border-color:var(--accent)}
+button.pri{background:var(--accent);color:#0a0612;border-color:var(--accent);font-weight:700}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.warn{border:1px solid #5b4a12;background:#1a1507;color:var(--warn);border-radius:6px;padding:8px 10px;font-size:13px}
+.rules{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px}
+.rules label{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
+.rules input{margin-top:4px;accent-color:var(--accent)}
+details summary{cursor:pointer;color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:3px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:400}
+td.orig{word-break:break-all;filter:blur(5px);transition:filter .15s}
+table.show td.orig{filter:none}
+.tablewrap{max-height:260px;overflow:auto}
+.empty{color:var(--dim);font-style:italic}
+.seo{max-width:1100px;margin:10px auto 0;padding:0 18px 10px;color:var(--dim)}
+.seo h2{display:block;font-size:15px;letter-spacing:.08em;color:var(--fg);text-transform:none;margin:22px 0 6px}
+.seo h3{font-size:13px;color:var(--accent);margin:14px 0 2px}
+.seo p{margin:0 0 6px}
+.seo .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 22px}
+footer{text-align:center;color:var(--dim);padding:20px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>VEIL<span>//</span></h1>
+  <p>Redact secrets before you paste. Restore them after. Nothing leaves your browser.</p>
+</header>
+
+<div class="wrap">
+  <div class="warn">Regex can't recognize people's names, project codenames or secrets buried in prose. Skim the output before you share it, and add anything sensitive under <b>Custom terms</b>.</div>
+
+  <div class="two">
+    <section>
+      <h2>1 · Paste your text <small id="stat"></small></h2>
+      <textarea id="in" spellcheck="false" placeholder="Paste logs, configs, stack traces, code, curl commands..."></textarea>
+      <div class="row">
+        <button id="sample">Load sample</button>
+        <button id="clr">Clear</button>
+      </div>
+    </section>
+    <section>
+      <h2>2 · Safe to share <button id="copy" class="pri">Copy redacted</button></h2>
+      <textarea id="out" spellcheck="false" readonly></textarea>
+    </section>
+  </div>
+
+  <div class="two">
+    <section>
+      <h2>What gets redacted</h2>
+      <div class="rules" id="rules"></div>
+      <details>
+        <summary>Custom terms (one per line — names, hostnames, codenames)</summary>
+        <textarea id="cust" class="short" spellcheck="false" placeholder="Acme Corp&#10;project-nightingale&#10;Jane Smith"></textarea>
+      </details>
+    </section>
+    <section>
+      <h2>Mapping <span class="row"><button id="reveal">Reveal originals</button></span></h2>
+      <div class="tablewrap"><table id="map"><thead><tr><th title="Uncheck to stop redacting this value">keep</th><th>placeholder</th><th>×</th><th>original</th></tr></thead><tbody></tbody></table></div>
+      <div class="row">
+        <button id="export" title="Contains your real secrets — treat as sensitive">Export map</button>
+        <label class="btn">Import map<input id="import" type="file" accept="application/json" hidden></label>
+        <button id="reset">Reset session</button>
+        <label class="row" style="gap:4px"><input id="keep" type="checkbox"> keep map across refresh (this tab)</label>
+      </div>
+    </section>
+  </div>
+
+  <div class="two">
+    <section>
+      <h2>3 · Paste the AI's reply</h2>
+      <textarea id="rin" spellcheck="false" placeholder="Paste the response that still contains {{EMAIL_1}}, {{AWS_KEY_1}} and so on..."></textarea>
+    </section>
+    <section>
+      <h2>4 · Restored <span><small id="rstat"></small> <button id="rcopy" class="pri">Copy restored</button></span></h2>
+      <textarea id="rout" spellcheck="false" readonly></textarea>
+    </section>
+  </div>
+</div>
+
+<div class="seo">
+  <h2>What is Veil?</h2>
+  <p>Veil is a free, reversible redaction tool for developers. It finds API keys, tokens, passwords, emails, IP addresses and other sensitive data in logs, configs and code, and swaps each one for a consistent placeholder like <code>{{EMAIL_1}}</code>. After you get an answer from ChatGPT, Claude or a forum, paste it back and Veil restores your real values. Everything runs locally in your browser.</p>
+  <div class="grid">
+    <div><h3>Redact secrets before pasting into ChatGPT or Claude</h3><p>Debug with an AI assistant without handing it your AWS keys, GitHub tokens, database passwords or customer emails.</p></div>
+    <div><h3>Sanitize logs for GitHub issues and forums</h3><p>Share stack traces and server logs publicly with IPs, hostnames, credentials and usernames stripped out.</p></div>
+    <div><h3>Reversible placeholders</h3><p>The same secret always gets the same placeholder, so the AI's answer still makes sense, and you can restore the originals in one click.</p></div>
+    <div><h3>What it detects</h3><p>Private keys, JWTs, AWS, GitHub, Slack, Stripe, Google and OpenAI-style keys, bearer tokens, password and secret assignments, credentials in URLs, emails, IPv4 and IPv6, MAC addresses, credit cards (Luhn-checked), SSNs, home-directory usernames, plus your own custom terms.</p></div>
+  </div>
+  <h2>Is my data safe?</h2>
+  <p>Detection, redaction and restoration all happen in your browser. Nothing is uploaded and there is no server component. The mapping between placeholders and real values lives only in this tab's memory unless you choose to keep it for the session or export it. Pattern matching is not perfect, so always review the output before sharing.</p>
+</div>
+<footer>Runs 100% client-side. View source — it's one file. Pattern-based redaction is best-effort, not a guarantee.</footer>
+
+<script id="core">
+const RULES=[
+ {id:'privkey',cat:'PRIVATE_KEY',label:'Private key blocks',on:1,p:0,re:/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g},
+ {id:'jwt',cat:'JWT',label:'JWTs',on:1,p:1,re:/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{4,}/g},
+ {id:'aws',cat:'AWS_KEY',label:'AWS access keys',on:1,p:1,re:/\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g},
+ {id:'gh',cat:'GITHUB_TOKEN',label:'GitHub tokens',on:1,p:1,re:/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b/g},
+ {id:'slack',cat:'SLACK_TOKEN',label:'Slack tokens',on:1,p:1,re:/\bxox[baprs]-[A-Za-z0-9-]{10,}/g},
+ {id:'stripe',cat:'STRIPE_KEY',label:'Stripe keys',on:1,p:1,re:/\b[sr]k_(?:live|test)_[A-Za-z0-9]{16,}\b/g},
+ {id:'google',cat:'GOOGLE_KEY',label:'Google API keys',on:1,p:1,re:/\bAIza[0-9A-Za-z_-]{35}\b/g},
+ {id:'sk',cat:'API_KEY',label:'OpenAI / Anthropic style keys (sk-…)',on:1,p:1,re:/\bsk-(?:ant-)?[A-Za-z0-9_-]{20,}/g},
+ {id:'bearer',cat:'BEARER_TOKEN',label:'Bearer tokens',on:1,p:2,re:/\bBearer\s+([A-Za-z0-9\-._~+\/]{12,}=*)/gi,g:1},
+ {id:'kv',cat:'SECRET',label:'password= / secret= / token= values',on:1,p:3,re:/(?:password|passwd|pwd|passphrase|secret|token|api[_-]?key|apikey|access[_-]?key|client[_-]?secret|auth(?:orization)?|private[_-]?key|credential)s?\b["']?\s*[:=]\s*["']?([^\s"',;&]{4,})/gi,g:1,ok:t=>!/^(bearer|basic|token|null|none|true|false|undefined)$/i.test(t)},
+ {id:'urlcred',cat:'URL_PASSWORD',label:'Passwords inside URLs',on:1,p:2,re:/\b[a-z][a-z0-9+.-]*:\/\/[^\s:@\/]+:([^\s@\/]+)@/gi,g:1},
+ {id:'email',cat:'EMAIL',label:'Email addresses',on:1,p:4,re:/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g},
+ {id:'ipv4',cat:'IP',label:'IPv4 addresses (not 127.x / 0.0.0.0)',on:1,p:5,re:/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,ok:t=>t.split('.').every(o=>+o<=255)&&!/^(127\.|0\.0\.0\.0)/.test(t)},
+ {id:'ipv6',cat:'IPV6',label:'IPv6 addresses',on:1,p:6,re:/\b(?:[0-9a-f]{1,4}:){7}[0-9a-f]{1,4}\b|\b(?:[0-9a-f]{1,4}:){1,6}:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4}\b/gi},
+ {id:'mac',cat:'MAC',label:'MAC addresses',on:1,p:4,re:/\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b/gi},
+ {id:'internal',cat:'HOST',label:'Internal hostnames (.local .internal .lan .corp)',on:1,p:5,re:/\b(?:[a-z0-9-]+\.)+(?:local|internal|lan|corp|intranet)\b/gi},
+ {id:'user',cat:'USERNAME',label:'Usernames in /home/… /Users/… paths',on:1,p:5,re:/(?:\/home\/|\/Users\/)([^\/\s:]+)|[A-Za-z]:\\Users\\([^\\\s]+)/g,g:1,g2:2},
+ {id:'card',cat:'CARD',label:'Credit card numbers (Luhn-checked)',on:1,p:5,re:/\b(?:\d[ -]?){13,19}\b/g,ok:t=>{const d=t.replace(/\D/g,'');if(d.length<13||d.length>19)return false;let s=0,a=false;for(let i=d.length-1;i>=0;i--){let n=+d[i];if(a){n*=2;if(n>9)n-=9}s+=n;a=!a}return s%10===0}},
+ {id:'ssn',cat:'SSN',label:'US SSNs',on:1,p:5,re:/\b\d{3}-\d{2}-\d{4}\b/g},
+ {id:'domain',cat:'DOMAIN',label:'All domains (also hides github.com etc.)',on:0,p:6,re:/\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|dev|app|ai|cloud|space|xyz|me|us|uk|de|ru|cn|info|biz|tech|online|site)\b/gi},
+ {id:'phone',cat:'PHONE',label:'US phone numbers',on:0,p:6,re:/(?<!\d)(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?!\d)/g},
+ {id:'uuid',cat:'UUID',label:'UUIDs',on:0,p:6,re:/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi},
+ {id:'entropy',cat:'HIGH_ENTROPY',label:'Random-looking strings (noisy)',on:0,p:7,re:/\b[A-Za-z0-9+\/_-]{24,}\b/g,ok:t=>{if(!/\d/.test(t)||!/[A-Za-z]/.test(t))return false;const f={};for(const c of t)f[c]=(f[c]||0)+1;return -Object.values(f).reduce((a,n)=>a+(n/t.length)*Math.log2(n/t.length),0)>=3.8}},
+];
+const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const isPH=t=>/\{\{[A-Z_]+_\d+\}\}/.test(t);
+
+function makeState(){return {map:new Map(),rev:new Map(),count:{}}}
+
+function scan(text,enabled,custom,ignore){
+  const found=[];
+  for(const r of RULES){
+    if(!enabled[r.id])continue;
+    const re=new RegExp(r.re.source,'gd'+(r.re.flags.includes('i')?'i':''));
+    let m;
+    while((m=re.exec(text))){
+      if(m[0]===''){re.lastIndex++;continue}
+      let g=r.g,ix=null;
+      if(g){ix=m.indices[g]; if(!ix&&r.g2){ix=m.indices[r.g2]}}
+      const s=ix?ix[0]:m.index, e=ix?ix[1]:m.index+m[0].length, t=text.slice(s,e);
+      if(!t||isPH(t)||ignore.has(t))continue;
+      if(r.ok&&!r.ok(t,m))continue;
+      found.push({s,e,t,cat:r.cat,p:r.p});
+    }
+  }
+  const terms=[...new Set(custom)].sort((a,b)=>b.length-a.length);
+  for(const term of terms){
+    const re=new RegExp(escRe(term),'gi');let m;
+    while((m=re.exec(text))){ if(!ignore.has(m[0])) found.push({s:m.index,e:m.index+m[0].length,t:m[0],cat:'CUSTOM',p:-1}) }
+  }
+  found.sort((a,b)=>a.s-b.s||a.p-b.p||(b.e-b.s)-(a.e-a.s));
+  const out=[];let end=-1;
+  for(const f of found){ if(f.s>=end){out.push(f);end=f.e} }
+  return out;
+}
+
+function placeholder(st,cat,t){
+  if(st.map.has(t))return st.map.get(t);
+  const n=(st.count[cat]=(st.count[cat]||0)+1);
+  const p='{{'+cat+'_'+n+'}}';
+  st.map.set(t,p);st.rev.set(p,t);return p;
+}
+
+function redact(text,st,enabled,custom,ignore){
+  const items=scan(text,enabled,custom,ignore);
+  let out='',last=0;const used=new Map();
+  for(const it of items){
+    const p=placeholder(st,it.cat,it.t);
+    out+=text.slice(last,it.s)+p;last=it.e;
+    used.set(p,(used.get(p)||0)+1);
+  }
+  return {out:out+text.slice(last),items,used};
+}
+
+function restore(text,st){
+  const keys=[...st.rev.keys()].map(k=>k.slice(2,-2)).sort((a,b)=>b.length-a.length);
+  if(!keys.length)return {out:text,n:0};
+  const K=keys.map(escRe).join('|');
+  const re=new RegExp('(?:\\{\\{|<<|\\[\\[|<|\\[|\\{)\\s?('+K+')\\s?(?:\\}\\}|>>|\\]\\]|>|\\]|\\})|(?<![A-Za-z0-9_])('+K+')(?![0-9A-Za-z_])','g');
+  let n=0;
+  const out=text.replace(re,(m,a,b)=>{n++;return st.rev.get('{{'+(a||b)+'}}')});
+  return {out,n};
+}
+</script>
+
+<script>
+const $=id=>document.getElementById(id);
+let st=makeState(),ignore=new Set(),enabled={},T;
+RULES.forEach(r=>enabled[r.id]=!!r.on);
+const SAMPLE=`2026-11-16 03:12:44 ERROR deploy failed for jon@example.com from 203.0.113.42 (mac 00:1A:2B:3C:4D:5E)
+Authorization: Bearer abcDEF1234567890abcDEF1234567890
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+db_password = "hunter2hunter2"
+connecting to postgres://admin:s3cr3tpw@db.internal:5432/app
+GITHUB_TOKEN: ghp_abcdefghijklmnopqrstuvwxyz0123456789
+session jwt eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.c2lnbmF0dXJl
+config at /home/jon/projects/secret-app/config.yml
+card on file 4111 1111 1111 1111`;
+
+$('rules').innerHTML=RULES.map(r=>`<label><input type="checkbox" data-id="${r.id}" ${r.on?'checked':''}><span>${r.label}</span></label>`).join('');
+$('rules').onchange=e=>{enabled[e.target.dataset.id]=e.target.checked;run()};
+
+const custom=()=>$('cust').value.split('\n').map(s=>s.trim()).filter(s=>s.length>=2);
+const sched=()=>{clearTimeout(T);T=setTimeout(run,200)};
+
+function run(){
+  const {out,items,used}=redact($('in').value,st,enabled,custom(),ignore);
+  $('out').value=out;
+  $('stat').textContent=items.length?`${items.length} redacted · ${used.size} unique`:($('in').value?'nothing found':'');
+  renderMap(used);persist();runRestore();
+}
+
+function renderMap(used){
+  const tb=$('map').tBodies[0];tb.innerHTML='';
+  if(!used.size){const tr=tb.insertRow();const td=tr.insertCell();td.colSpan=4;td.className='empty';td.textContent='No findings yet.';return}
+  [...used.entries()].slice(0,300).forEach(([p,n])=>{
+    const tr=tb.insertRow();
+    const c=tr.insertCell();const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.dataset.p=p;c.appendChild(cb);
+    tr.insertCell().textContent=p;tr.insertCell().textContent=n;
+    const o=tr.insertCell();o.className='orig';o.textContent=st.rev.get(p);
+  });
+}
+$('map').onchange=e=>{
+  const p=e.target.dataset&&e.target.dataset.p;
+  if(p&&!e.target.checked){ignore.add(st.rev.get(p));run()}
+};
+$('reveal').onclick=()=>{const t=$('map');t.classList.toggle('show');$('reveal').textContent=t.classList.contains('show')?'Hide originals':'Reveal originals'};
+
+function runRestore(){
+  const r=restore($('rin').value,st);
+  $('rout').value=r.out;
+  $('rstat').textContent=$('rin').value?(st.rev.size?`${r.n} restored`:'redact something first'):'';
+}
+
+function persist(){
+  try{
+    if($('keep').checked)sessionStorage.setItem('veil',JSON.stringify({map:[...st.map],count:st.count,ignore:[...ignore],cust:$('cust').value}));
+    else sessionStorage.removeItem('veil');
+  }catch{}
+}
+function loadSession(){
+  try{
+    const d=JSON.parse(sessionStorage.getItem('veil')||'null');if(!d)return;
+    st=makeState();d.map.forEach(([o,p])=>{st.map.set(o,p);st.rev.set(p,o)});st.count=d.count||{};
+    ignore=new Set(d.ignore||[]);$('cust').value=d.cust||'';$('keep').checked=true;
+  }catch{}
+}
+
+$('in').oninput=sched;$('cust').oninput=sched;$('rin').oninput=runRestore;
+$('keep').onchange=persist;
+$('sample').onclick=()=>{$('in').value=SAMPLE;$('cust').value='secret-app';run()};
+$('clr').onclick=()=>{$('in').value='';run()};
+$('reset').onclick=()=>{st=makeState();ignore=new Set();run()};
+const copyBtn=(btn,src,label)=>{$(btn).onclick=async()=>{try{await navigator.clipboard.writeText($(src).value)}catch{$(src).select();document.execCommand('copy')}$(btn).textContent='Copied';setTimeout(()=>$(btn).textContent=label,900)}};
+copyBtn('copy','out','Copy redacted');copyBtn('rcopy','rout','Copy restored');
+
+$('export').onclick=()=>{
+  const blob=new Blob([JSON.stringify({veil:1,map:[...st.map]},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='veil-map.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$('import').onchange=async e=>{
+  try{
+    const d=JSON.parse(await e.target.files[0].text());
+    if(!Array.isArray(d.map))throw 0;
+    for(const [o,p] of d.map){
+      if(typeof o!=='string'||!/^\{\{([A-Z_]+)_(\d+)\}\}$/.test(p))continue;
+      const m=p.match(/^\{\{([A-Z_]+)_(\d+)\}\}$/);
+      st.map.set(o,p);st.rev.set(p,o);st.count[m[1]]=Math.max(st.count[m[1]]||0,+m[2]);
+    }
+    run();
+  }catch{alert('That file is not a Veil map.')}
+  e.target.value='';
+};
+
+loadSession();run();
+</script>
+</body>
+</html>
